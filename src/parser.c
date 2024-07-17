@@ -27,7 +27,7 @@ ast_t parse_id(token_t);
 ast_t parse_exp(int);
 
 ast_t parse(token_t tok) {
-    print_token(tok);
+    print_token(tok, stdout);
     
     switch (tok->type) {
         case ID:
@@ -47,7 +47,7 @@ ast_t parse(token_t tok) {
 }
 
 void parse_comma() {
-    print_token(deque_front(tokens));
+    print_token(deque_front(tokens), stdout);
     if (((token_t)deque_front(tokens))->type != COMMA) {
         fprintf(stderr, "\033[0;31m");
         fprintf(stderr, "[PARSER] Expected a ','");
@@ -59,7 +59,7 @@ void parse_comma() {
 }
 
 void parse_semi() {
-    print_token(deque_front(tokens));
+    print_token(deque_front(tokens), stdout);
     if (((token_t)deque_front(tokens))->type != SEMI) {
         fprintf(stderr, "\033[0;31m");
         fprintf(stderr, "[PARSER] Expected a ';'");
@@ -68,10 +68,6 @@ void parse_semi() {
 
     token_t tok = deque_pop_front(tokens);
     free_token(tok);
-}
-
-ast_t parse_arg(token_t tok) {
-
 }
 
 ast_t parse_id(token_t tok) {
@@ -89,7 +85,7 @@ ast_t parse_id(token_t tok) {
                 deque_push_back(ast->args, parse_exp(COMMA), AST);
                 next = deque_pop_front(tokens);
             }
-            print_token(next);
+            print_token(next, stdout);
             free_token(next);
 
             parse_semi();
@@ -124,7 +120,7 @@ ast_t parse_id(token_t tok) {
         }
 
         ast_t exp = parse_exp(SEMI);
-        print_ast(exp);
+        print_ast(exp, stdout);
         deque_push_back(ast->children, exp, AST);
     } else if (next->type == LPAREN) {
         ast = init_ast(DEF, strdup(name));
@@ -135,7 +131,7 @@ ast_t parse_id(token_t tok) {
     } else {
         fprintf(stderr, "\033[0;31m");
         fprintf(stderr, "[PARSER] Unexpected token ");
-        print_token(next);
+        print_token(next, stdout);
         exit(1);
     }
 
@@ -147,7 +143,7 @@ ast_t parse_exp(int end_type) {
 
     token_t next;
     while ((next = deque_pop_front(tokens))->type != end_type) {
-        print_token(next);
+        print_token(next, stdout);
 
         if (next->type == LPAREN) {
             deque_push_front(holding, next, TOKEN);
@@ -219,7 +215,7 @@ deque_t shunt(lexer_t lex) {
     free_lexer(lex);
 
     printf("Tokens:\n");
-    print_deque(tokens);
+    print_deque(tokens, stdout);
     printf("\n\n");
 
     output = init_deque();
@@ -241,7 +237,7 @@ deque_t shunt(lexer_t lex) {
     }
 
     printf("\n\nHolding:\n");
-    print_deque(holding);
+    print_deque(holding, stdout);
 
     free_deque(tokens);
     free_deque(holding);

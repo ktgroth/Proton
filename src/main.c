@@ -48,20 +48,21 @@ int main(int argc, char *argv[]) {
     char *program = read_program(input_filename);
     printf("%s\n", program);
 
-    lexer_t lex = init_lexer(program);
-    free(program);
-
-    deque_t tokens = shunt(lex);
-    
-    printf("\n\nOutput:\n");
-    print_deque(tokens);
-
     if (!final_filename) {
         final_filename = "a";
     }
 
-    FILE *output = fopen(final_filename, "w");
-    fwrite("Hello, World!\n", strlen("Hello, World!\n"), sizeof(char), output);
+    FILE *output_file = fopen(final_filename, "w");
+    
+    lexer_t lex = init_lexer(program);
+    free(program);
+
+    deque_t tokens = shunt(lex);
+    print_deque(tokens, output_file);
+    
+    printf("\n\nOutput:\n");
+    print_deque(tokens, stdout);
+
 
     return 0;
 }

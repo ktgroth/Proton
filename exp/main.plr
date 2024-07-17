@@ -1,0 +1,24 @@
+
+; Making 'a'
+= rax 1
+= rbx 12
++ rax rbx
+= [rbp - 4] rax
+
+; Making 'b'
+= rax [rbx - 4]
+= [rbp - 8] rax
+
+; Making 'c'
+= rax 0
+= [rbp - 12] rax
+
+; Printing 'a'
+= eax 4
+= eax 1
+= eax message
+= eax 1
+syscall
+
+message:
+    db 'Hello, World!', 0x0A, 0x00
