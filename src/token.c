@@ -5,36 +5,30 @@
 
 #include "include/token.h"
 
-token_t init_token(int type, char *name) {
-    token_t t = (token_t)calloc(1, sizeof(token));
-    if (!t) {
-        fprintf(stderr, "\033[0;31m");
-        fprintf(stderr, "[ERROR] Could not allocate memory for token <'%d', '%s'>!\n", type, name);
-        exit(1);
+token_t *init_token(char *name, ttype_t ttype, type_t type, size_t line)
+{
+    token_t *token = (token_t *)calloc(1, sizeof(token_t));
+    if (!token)
+    {
+        perror("Could Not Allocate Token ");
+        return NULL;
     }
 
-    t->type = type;
-    t->name = name;
+    token->name = name;
+    token->ttype = ttype;
+    token->type = type;
+    token->line = line;
 
-    return t;
+    return token;
 }
 
-void free_token(token_t tok) {
-    if (tok) {
-        switch (tok->type) {
-            case ID:
-            case NUM:
-            case STRING:
-                free(tok->name);
-        }
-        tok->type = 0;
-        free(tok);
-    }
-}
+int tokcmp(token_t *t1, token_t *t2)
+{
+    if (t1->ttype - t2->ttype)
+        return t1->ttype - t2->ttype;
 
-int tokcmp(token_t tok1, token_t tok2) {
-    if (tok1->type != tok2->type)
-        return tok1->type - tok2->type;
+    if (t1->type - t2->type)
+        return t1->type - t2->type;
 
-    return strcmp(tok1->name, tok2->name);
+    return strcmp(t1->name, t2->name);
 }

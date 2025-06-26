@@ -1,0 +1,14 @@
+
+main:
+    rax = 0x00;
+    rbx = 0b101;
+    rcx = 0x0AP;
+    rdi = 0;
+    rdx = 0.;
+    rbp = 00;
+    rsp = 04;
+    rbx = 10 + 11;
+    rax = main;
+
+print:
+    rax = "Hello, World";

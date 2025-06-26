@@ -1,21 +1,19 @@
 
-#ifndef LEXER_H_
-#define LEXER_H_
+#ifndef PROTON_LEXER
+#define PROTON_LEXER
 
-#include <stdlib.h>
+#include <string.h>
 
 #include "token.h"
 
-typedef struct {
+typedef struct
+{
     char *program;
-    size_t size;
-    char ch;
-    int pos;
-} lexer, *lexer_t;
+    size_t size, i;
+    char c;
+} lexer_t;
 
-lexer_t init_lexer(char*);
-void free_lexer(lexer_t);
-
-token_t next_token(lexer_t);
+lexer_t *init_lexer(char *program);
+token_t *next_token(lexer_t *lexer);
 
 #endif

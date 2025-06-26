@@ -2,67 +2,117 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
-#include "include/parser.h"
-#include "include/print.h"
+#include "include/first_pass.h"
+#include "include/globals.h"
 
-char *read_program(char *filename) {
+char *read_program(char *filename)
+{
     FILE *fp = fopen(filename, "r");
+    if (!fp)
+    {
+        perror("Could Open File ");
+        return NULL;
+    }
 
-    char *program = (char*)calloc(1, sizeof(char)), *line = NULL;
-    size_t line_size;
-    while (getline(&line, &line_size, fp) != -1) {
-        program = realloc(program, (strlen(program) + strlen(line) + 1) * sizeof(char));
+    char *program = (char *)calloc(1, sizeof(char));
+
+    char *line;
+    size_t n;
+    while (getline(&line, &n, fp) != -1)
+    {
+        program = realloc(program, (strlen(program) + n) * sizeof(char));
         program = strcat(program, line);
     }
-    free(line);
     fclose(fp);
 
     return program;
 }
 
-int main(int argc, char *argv[]) {
-    char *input_filename = NULL, *final_filename = NULL;
-    if (argc > 1)
-        input_filename = argv[1];
-    else {
-        fprintf(stderr, "\033[0;31m");
-        fprintf(stderr, "[ERROR] No input file was given\n");
-        exit(1);
+static size_t tabs = 0;
+
+void print_ast(ast_t *ast) {
+    for (size_t i = 0; i < tabs; ++i)
+        printf("\t");
+    
+    if (!ast)
+    {
+        printf("(nul)\n");
+        return;
     }
     
-    for (int i = 2; i < argc; ++i) {
-        if (!strncmp(argv[i], "-", 1)) {
-            if (!strcmp(argv[i] + 1, "o")) {
-                if (argc > i + 1)
-                    final_filename = argv[++i];
-                else {
-                    fprintf(stderr, "\033[0;31m");
-                    fprintf(stderr, "[ERROR] No output file was given\n");
-                    exit(1);
-                }
-            }
+    printf("%s %d ", ast->name, ast->atype);
+    switch (ast->type)
+    {
+        case TYPE_STRING:
+        case TYPE_POINTER:
+        case TYPE_OP:
+            printf("%ld\n", ast->line);
+            break;
+
+        case TYPE_BINARY:
+        case TYPE_INT:
+        case TYPE_HEX:
+        case TYPE_OCTAL:
+            printf("%ld\n", ast->value_i);
+            break;
+
+        case TYPE_FLOAT:
+            printf("%f\n", ast->value_f);
+            break;
+
+        default:
+            printf("%ld\n", ast->line);
+    }
+    size_t s = ast->children->size;
+    ++tabs;
+    for (size_t i = 0; i < s; ++i)
+        print_ast(ast->children->child[i]);
+    --tabs;
+}
+
+int main(int argc, char *argv[])
+{
+    char *infile = NULL;
+    char *outfile = NULL;
+
+    for (int i = 1; i < argc; ++i)
+    {
+        if (!strcmp(argv[i], "-o") && i + 1 < argc)
+        {
+            i += 1;
+            outfile = argv[i];
+        } else
+        {
+            infile = argv[i];
         }
     }
 
-    char *program = read_program(input_filename);
-    printf("%s\n", program);
-
-    if (!final_filename) {
-        final_filename = "a";
+    if (!infile)
+    {
+        fprintf(stderr, "Usage: %s <inputfile> [-o outputfile]\n", argv[0]);
+        return 1;
     }
 
-    FILE *output_file = fopen(final_filename, "w");
-    
-    lexer_t lex = init_lexer(program);
-    free(program);
+    if (!outfile)
+        outfile = "a.out";
 
-    deque_t tokens = shunt(lex);
-    print_deque(tokens, output_file);
+    char *program = read_program(infile);
+    if (!program)
+        return 1;
+        
+    init_registers();
+    init_keywords();
+    init_symbols();
+    init_ops();
     
-    printf("\n\nOutput:\n");
-    print_deque(tokens, stdout);
+    fp_parser_t *parser = init_fp_parser(program);
+    if (!parser)
+        return 1;
 
+    ast_t *ast = parse_init(parser);
+    print_ast(ast);
 
     return 0;
 }

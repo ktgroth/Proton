@@ -1,29 +1,35 @@
 
-#ifndef AST_H_
-#define AST_H_
+#ifndef PROTON_AST
+#define PROTON_AST
 
-#include "deque.h"
+#include <stdint.h>
 
-enum {
-    TYPE,
-    EXP,
+#include "token.h"
 
-    ASSIGN,
-    READ,
-    ARG,
-    DEF,
-    CALL,
+typedef struct ast_t ast_t;
+typedef struct ast_children_t ast_children_t;
+
+struct ast_t {
+    char *name;
+    ttype_t atype;
+    type_t type;
+    union {
+        size_t line;
+        size_t power;
+        size_t addr;
+        int64_t value_i;
+        double value_f;
+    };
+    ast_children_t *children;
+    ast_t *context;
 };
 
-typedef struct {
-    int type;
-    char *name;
-    deque_t children;
-    deque_t args;
-} sast, *ast_t;
+struct ast_children_t {
+    ast_t **child;
+    size_t size;
+};
 
-ast_t init_ast(int, char*);
-void free_ast(ast_t);
-
+ast_t *init_ast(char *name, ttype_t atype, type_t type, void *info, ast_t *context);
+void add_child(ast_t *ast, ast_t *child);
 
 #endif
